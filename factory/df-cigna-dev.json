@@ -1,0 +1,15 @@
+{
+	"name": "df-cigna-dev",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "southindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "c272509c-8dab-4c9c-9b12-e600e0d58198",
+		"tenantId": "738cf41d-9acd-4daa-80a5-de7228da1655"
+	}
+}
