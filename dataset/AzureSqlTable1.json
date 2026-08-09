@@ -1,8 +1,8 @@
 {
-	"name": "AzureSql",
+	"name": "AzureSqlTable1",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "LS_cigna_sqldb_dev",
+			"referenceName": "AzureSql",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
@@ -10,8 +10,7 @@
 		"schema": [],
 		"typeProperties": {
 			"schema": "SalesLT",
-			"table": "Address"
+			"table": "AddressBackup"
 		}
-	},
-	"type": "Microsoft.DataFactory/factories/datasets"
+	}
 }
