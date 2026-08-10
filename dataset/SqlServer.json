@@ -9,8 +9,8 @@
 		"type": "SqlServerTable",
 		"schema": [],
 		"typeProperties": {
-			"schema": "dbo",
-			"table": "emp"
+			"schema": "member",
+			"table": "memberdetails"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"
