@@ -9,8 +9,8 @@
 		"type": "AzureSqlTable",
 		"schema": [],
 		"typeProperties": {
-			"schema": "SalesLT",
-			"table": ""
+			"schema": "config",
+			"table": "Configuration"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"

@@ -1,0 +1,234 @@
+{
+	"name": "PL_sqlserver_Raw",
+	"properties": {
+		"activities": [
+			{
+				"name": "Fetch_Config",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSql",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Check_Untill_Records_Found",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(activity('Check_Count').output,0)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Check_Count",
+							"type": "Script",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "SqlServer1",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "@concat(\n    'SELECT COUNT(*) AS RecordCount FROM ',\n    activity('Fetch_Config').output.value[0].SourceSchema,\n    '.',\n    activity('Fetch_Config').output.value[0].SourceTable\n)",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "count_recheck",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Check_Count",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "count",
+								"value": {
+									"value": "@activity('Check_Count').output.resultSets[0].rows[0].RecordCount",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Wait1",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "count_recheck",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 60
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "count",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Fetch_Config",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "count",
+					"value": 0
+				}
+			},
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Check_Untill_Records_Found",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "@concat(\n    'SELECT * AS RecordCount FROM ',\n    activity('Fetch_Config').output.value[0].SourceSchema,\n    '.',\n    activity('Fetch_Config').output.value[0].SourceTable\n)",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SqlServer",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "adls_raw_landing",
+						"type": "DatasetReference",
+						"parameters": {
+							"year": {
+								"value": "@formatDateTime(utcNow(),'yyyy')",
+								"type": "Expression"
+							},
+							"month": {
+								"value": "@formatDateTime(utcNow(),'MM')",
+								"type": "Expression"
+							},
+							"day": {
+								"value": "@formatDateTime(utcNow(),'dd')",
+								"type": "Expression"
+							},
+							"fileName": {
+								"value": "@concat(activity('Fetch_Config').output.vaue[0].SourceTable,formatDateTime(utcNow(),'yyyyMMdd'))",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"variables": {
+			"count": {
+				"type": "Integer"
+			}
+		},
+		"folder": {
+			"name": "PLs_cigna_proj"
+		},
+		"annotations": []
+	}
+}
