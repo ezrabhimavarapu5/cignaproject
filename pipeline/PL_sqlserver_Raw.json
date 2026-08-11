@@ -41,7 +41,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@greater(activity('Check_Count').output,0)",
+						"value": "@greater(variables('count'),0)",
 						"type": "Expression"
 					},
 					"activities": [
@@ -162,7 +162,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "@concat(\n    'SELECT * AS RecordCount FROM ',\n    activity('Fetch_Config').output.value[0].SourceSchema,\n    '.',\n    activity('Fetch_Config').output.value[0].SourceTable\n)",
+							"value": "@concat(\n    'SELECT * FROM ',\n    activity('Fetch_Config').output.value[0].SourceSchema,\n    '.',\n    activity('Fetch_Config').output.value[0].SourceTable\n)",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -213,7 +213,7 @@
 								"type": "Expression"
 							},
 							"fileName": {
-								"value": "@concat(activity('Fetch_Config').output.vaue[0].SourceTable,formatDateTime(utcNow(),'yyyyMMdd'))",
+								"value": "@concat(activity('Fetch_Config').output.value[0].SourceTable,formatDateTime(utcNow(),'yyyyMMdd'))",
 								"type": "Expression"
 							}
 						}
